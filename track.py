@@ -8,8 +8,10 @@ print("model path={}".format(model_path))
 
 model = YOLO(model_path)
 # accepts all formats - image/dir/Path/URL/video/PIL/ndarray. 0 for webcam
-results = model.predict(source="0") # from video
-#results = model.track(source="0", show=True)
+#results = model.predict(source="0") # from video
+results = model.track(source="0", show=True)
+
+
 #results = model.predict(source="folder", show=True) # Display preds. Accepts all YOLO predict arguments
 
 # from PIL
