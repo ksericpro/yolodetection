@@ -8,6 +8,7 @@
 - [Websocket] (https://github.com/ultralytics/ultralytics/issues/1102)
 - [Fastap + WebSocket](https://medium.com/@nmjoshi/getting-started-websocket-with-fastapi-b41d244a2799)
 - [issue] (https://github.com/tiangolo/fastapi/issues/258)
+- [Lifespan] (https://fastapi.tiangolo.com/advanced/events/)
 
 # Setup
 
@@ -27,3 +28,5 @@
 
 ## run fast api
 - uvicorn fastapi_websocket:app --reload
+- unvicron test:app --reload
+- curl localhost:8000/push/testfdfd
