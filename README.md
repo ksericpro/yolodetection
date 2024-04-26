@@ -28,5 +28,14 @@
 
 ## run fast api
 - uvicorn fastapi_websocket:app --reload
-- unvicron test:app --reload
-- curl localhost:8000/push/testfdfd
+
+
+# Websocket Broadcast
+- uvicorn test:app --reload
+- open browser localhost:8000
+- curl localhost:8000/push/test
+
+# Links
+- [Multithread] (https://www.dataquest.io/blog/multithreading-in-python/?utm_source=google&utm_medium=&matchtype=&device=c&utm_campaign=springsavings&campaignid=20758249356&adgroupid=&adid=&utm_content=&gad_source=1&gclid=CjwKCAjwoa2xBhACEiwA1sb1BIJkAmPYhXej4hHvd9fUMWx2HG0W3RducgePxtneu1Lw-1kBxlVFhBoCCMYQAvD_BwE)
+
+- [Threads] (https://github.com/tiangolo/fastapi/issues/650)
