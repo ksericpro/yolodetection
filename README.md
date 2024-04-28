@@ -39,3 +39,20 @@
 - [Multithread] (https://www.dataquest.io/blog/multithreading-in-python/?utm_source=google&utm_medium=&matchtype=&device=c&utm_campaign=springsavings&campaignid=20758249356&adgroupid=&adid=&utm_content=&gad_source=1&gclid=CjwKCAjwoa2xBhACEiwA1sb1BIJkAmPYhXej4hHvd9fUMWx2HG0W3RducgePxtneu1Lw-1kBxlVFhBoCCMYQAvD_BwE)
 
 - [Threads] (https://github.com/tiangolo/fastapi/issues/650)
+
+- [Kafka] (https://medium.com/@amberkakkar01/getting-started-with-apache-kafka-on-docker-a-step-by-step-guide-48e71e241cf2)
+
+
+
+- [Websocket] (https://apidog.com/articles/how-to-create-and-run-a-websocket-server-in-python/)
+
+- [flask] (https://pyimagesearch.com/2019/09/02/opencv-stream-video-to-web-browser-html-page/)
+
+(https://stackoverflow.com/questions/56249775/running-a-yolo-model-in-the-flask-server-itself-how-to)
+
+# working
+- *[Zmq] (https://stackoverflow.com/questions/30988033/sending-live-video-frame-over-network-in-python-opencv)
+- *[Flask Camera] (https://blog.miguelgrinberg.com/post/video-streaming-with-flask)
+                 (https://blog.miguelgrinberg.com/post/flask-video-streaming-revisited)
+
+- Thread (https://stackoverflow.com/questions/59645272/how-do-i-pass-an-async-function-to-a-thread-target-in-python)

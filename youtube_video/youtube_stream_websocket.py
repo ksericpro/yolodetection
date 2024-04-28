@@ -10,9 +10,14 @@ from starlette.responses import HTMLResponse
 from starlette.websockets import WebSocket, WebSocketDisconnect
 import uvicorn
 import threading, time
+import base64
+import asyncio
+
+# global
+_exit = False
 
 # Load the YOLOv8 model
-model = YOLO("yolov8n.pt")
+model = YOLO("../yolov8n.pt")
 
 # Open youtube video
 link = "https://www.youtube.com/watch?v=yHP-zGsoqRA "
@@ -29,7 +34,7 @@ html = """
         <title>Chat</title>
     </head>
     <body>
-        <h1>Video Websocket</h1>
+        <h1>Yolov8 Video Websocket</h1>
         <form action="" onsubmit="sendMessage(event)">
             <input type="text" id="messageText" autocomplete="off"/>
             <button>Send</button>
@@ -114,19 +119,27 @@ async def websocket_endpoint(websocket: WebSocket):
 async def startup():
     # Prime the push notification generator
     await notifier.generator.asend(None)
+    #streaming_thread = threading.Thread(target=start_streaming, args=(notifier,))
+    #streaming_thread.start()
+
+    #_thread = threading.Thread(target=asyncio.run, args=(start_broadcast_msg(notifier),))
+    #_thread.start()
+
+    _streaming_thread = threading.Thread(target=asyncio.run, args=(start_streaming(notifier),))
+    _streaming_thread.start()
+    #_streaming_thread.join()
+    
 
 def handler(signum, frame):
     print("Ctrl-c was pressed")
+    _exit = True
     exit(1)
 
-def start_apiserver(port):
-    print("Starting API Server on {0}...".format(port))
-    uvicorn.run("youtube_stream_api:app",host='0.0.0.0', port=port, reload=True, workers=3)
-
-def start_streaming(_notifier):
+async def start_streaming(_notifier):
     print("Starting Video Streaming...")
+    start = time.time()
     # Loop through the video frames
-    while cap.isOpened():
+    while cap.isOpened() and _exit==False:
         # Read a frame from the video
         success, frame = cap.read()
         if success:
@@ -134,32 +147,47 @@ def start_streaming(_notifier):
             results = model(frame)
             # Visualize the results on the frame
             annotated_frame = results[0].plot()
-            print(type(annotated_frame))
+            #print(type(annotated_frame))
+            processed_string = base64.b64encode(annotated_frame)
+            #print(type(processed_string))
+            #print(processed_string)
+            #await _notifier.push("123")
+            await _notifier.push(processed_string)
+            #_notifier.push(f"123")
             # Display the annotated frame
-            cv2.imshow("YOLOv8 Inference", annotated_frame)
+            #cv2.imshow("YOLOv8 Inference", annotated_frame)
 
             # Break the loop if 'q' is pressed
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
+            #if cv2.waitKey(1) & 0xFF == ord("q"):
+            #    break
         else:
             # Break the loop if the end of the video is reached
             break
     # Release the video capture object and close the display window
     cap.release()
     cv2.destroyAllWindows()
-
-if __name__=="__main__":
-    start = time.time()
-    signal.signal(signal.SIGINT, handler)
-    streaming_thread = threading.Thread(target=start_streaming, args=(notifier,))
-    #apiserver_thread = threading.Thread(target=start_apiserver, args=(PORT,))
-    uvicorn.run("youtube_stream_api:app",host='0.0.0.0', port=8000, reload=True, workers=3)
-    streaming_thread.start()
-    #apiserver_thread.start()
-    uvicorn.run("youtube_stream_api:app",host='0.0.0.0', port=8000, reload=True, workers=3)
-
-    streaming_thread.join()
-    #apiserver_thread.join()
     end = time.time()
     print('Execution Time: {}'.format(end-start))
+
+async def start_broadcast_msg(_notifier):
+    print("Starting broadcast_msg...")
+    while True:
+        await _notifier.push("123")
+        time.sleep(1)
+
+
+if __name__=="__main__":
+    #start = time.time()
+    signal.signal(signal.SIGINT, handler)
+    #streaming_thread = threading.Thread(target=start_streaming, args=(notifier,))
+    #apiserver_thread = threading.Thread(target=start_apiserver, args=(PORT,))
+    uvicorn.run("youtube_stream_websocket:app",host='0.0.0.0', port=8000, reload=True, workers=3)
+   # streaming_thread.start()
+    #apiserver_thread.start()
+    #uvicorn.run("youtube_stream_api:app",host='0.0.0.0', port=8000, reload=True, workers=3)
+
+    #streaming_thread.join()
+    #apiserver_thread.join()
+    #end = time.time()
+    #print('Execution Time: {}'.format(end-start))
    

@@ -1,0 +1,2 @@
+- python app.py
+- open camera.html in browser
