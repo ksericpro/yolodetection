@@ -74,7 +74,7 @@ class Notifier:
 
 notifier = Notifier()
 
-WB = []
+#WB = []
 
 templates = Jinja2Templates(directory="templates")
 
@@ -94,8 +94,8 @@ def index(request: Request):
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await notifier.connect(websocket)
-    print("New Socket")
-    WB.append(websocket)
+   # print("New Socket")
+   # WB.append(websocket)
     try:
        while True:
             data = await websocket.receive_text()
@@ -170,17 +170,6 @@ async def start_broadcast_msg(_notifier):
 
 
 if __name__=="__main__":
-    #start = time.time()
     signal.signal(signal.SIGINT, handler)
-    #streaming_thread = threading.Thread(target=start_streaming, args=(notifier,))
-    #apiserver_thread = threading.Thread(target=start_apiserver, args=(PORT,))
-    uvicorn.run("youtube_stream_websocket:app",host='0.0.0.0', port=8000, reload=True, workers=3)
-   # streaming_thread.start()
-    #apiserver_thread.start()
-    #uvicorn.run("youtube_stream_api:app",host='0.0.0.0', port=8000, reload=True, workers=3)
-
-    #streaming_thread.join()
-    #apiserver_thread.join()
-    #end = time.time()
-    #print('Execution Time: {}'.format(end-start))
+    uvicorn.run("youtube_stream_websocket:app",host='0.0.0.0', port=PORT, reload=True, workers=3)
    
