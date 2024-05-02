@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Chat</title>
+    </head>
+    <body>
+        <h1>Yolov8 Video Websocket</h1>
+
+        <img id="frame" src="">
+
+        <script>
+            var ws = new WebSocket("ws://localhost:8000/ws");
+            //let ws = new WebSocket("ws://localhost:8000/ws");
+            //var ws = new WebSocket('ws://' + window.location.hostname + ':8000/ws')
+            //var ws = new WebSocket('ws://' + document.domain + ':' + location.port +"/ws");
+            let image = document.getElementById("frame");
+            image.onload = function(){
+                URL.revokeObjectURL(this.src); // release the blob URL once the image is loaded
+            }
+            ws.onmessage = function(event) {
+                image.src = URL.createObjectURL(event.data);
+            };
+
+            function imgChange(data) {
+                var c=document.getElementById("myCanvas");
+                var ctx=c.getContext("2d");
+                var img=new Image();
+                img.onload = function(){
+                    ctx.drawImage(img,0,0);
+                };
+                img.src="data:image/png;base64,"+ data;
+            }
+
+        </script>
+    </body>
+</html>

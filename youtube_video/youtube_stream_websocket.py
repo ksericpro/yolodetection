@@ -5,9 +5,12 @@ import signal
 
 from typing import List
 
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, Request
 from starlette.responses import HTMLResponse
 from starlette.websockets import WebSocket, WebSocketDisconnect
+from fastapi.templating import Jinja2Templates
+
+
 import uvicorn
 import threading, time
 import base64
@@ -27,40 +30,6 @@ cap = cap_from_youtube(link, "720p")
 app = FastAPI()
 PORT = 8000
 
-html = """
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Chat</title>
-    </head>
-    <body>
-        <h1>Yolov8 Video Websocket</h1>
-        <form action="" onsubmit="sendMessage(event)">
-            <input type="text" id="messageText" autocomplete="off"/>
-            <button>Send</button>
-        </form>
-        <ul id='messages'>
-        </ul>
-        <script>
-            var ws = new WebSocket("ws://localhost:8000/ws");
-            ws.onmessage = function(event) {
-                var messages = document.getElementById('messages')
-                var message = document.createElement('li')
-                var content = document.createTextNode(event.data)
-                message.appendChild(content)
-                messages.appendChild(message)
-            };
-            function sendMessage(event) {
-                var input = document.getElementById("messageText")
-                ws.send(input.value)
-                input.value = ''
-                event.preventDefault()
-            }
-        </script>
-    </body>
-</html>
-"""
-
 class Notifier:
     def __init__(self):
         self.connections: List[WebSocket] = []
@@ -74,8 +43,17 @@ class Notifier:
     async def push(self, msg: str):
         await self.generator.asend(msg)
 
+    async def pushBytes(self, buffer):
+        living_connections = []
+        while len(self.connections) > 0:
+            # Looping like this is necessary in case a disconnection is handled
+            websocket = self.connections.pop()
+            await websocket.send_bytes(buffer)
+            living_connections.append(websocket)
+        self.connections = living_connections
+
     async def connect(self, websocket: WebSocket):
-        print("Client Connected")
+        print("New Client Connected")
         await websocket.accept()
         self.connections.append(websocket)
 
@@ -96,20 +74,30 @@ class Notifier:
 
 notifier = Notifier()
 
-@app.get("/")
-async def get():
-    return HTMLResponse(html)
+WB = []
 
-@app.get("/push/{message}")
-async def push_to_connected_websockets(message: str):
-    await notifier.push(f"! Push notification: {message} !")
-    return {"message": "message successfully broadcasted"}
+templates = Jinja2Templates(directory="templates")
+
+#@app.get("/")
+#async def get():
+#    return HTMLResponse(html)
+
+@app.get('/')
+def index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+#@app.get("/push/{message}")
+#async def push_to_connected_websockets(message: str):
+#    await notifier.push(f"! Push notification: {message} !")
+#    return {"message": "message successfully broadcasted"}
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await notifier.connect(websocket)
+    print("New Socket")
+    WB.append(websocket)
     try:
-        while True:
+       while True:
             data = await websocket.receive_text()
             await websocket.send_text(f"Message text was: {data}")
     except WebSocketDisconnect:
@@ -146,13 +134,18 @@ async def start_streaming(_notifier):
             # Run YOLOv8 inference on the frame
             results = model(frame)
             # Visualize the results on the frame
-            annotated_frame = results[0].plot()
+            annotated_frame = results[0].plot() #numpy array
             #print(type(annotated_frame))
-            processed_string = base64.b64encode(annotated_frame)
-            #print(type(processed_string))
+            ret, buffer = cv2.imencode('.jpg', annotated_frame)
+
+            #processed_string = base64.b64encode(annotated_frame)
+            #print("\n\n")
             #print(processed_string)
             #await _notifier.push("123")
-            await _notifier.push(processed_string)
+            #for w in WB:
+            #    await w.send_bytes(buffer.tobytes())
+            await _notifier.pushBytes(buffer.tobytes())
+            await asyncio.sleep(0.03)
             #_notifier.push(f"123")
             # Display the annotated frame
             #cv2.imshow("YOLOv8 Inference", annotated_frame)
